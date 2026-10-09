@@ -1,6 +1,6 @@
 # Mural Vermelho
 
-Agregador de notícias e textos de esquerda em português. Reúne títulos, trechos e links de dezenas de veículos, atualizado de hora em hora, com duas seções (**Notícias** e **Textos longos**), filtro por tema e por veículo e busca.
+Agregador de notícias e textos de esquerda em português. Reúne títulos, trechos e links de dezenas de veículos, atualizado de hora em hora, com duas seções (**Notícias** e **Ensaios**), filtro por tema e por veículo e busca.
 
 O site é 100% estático: um robô (GitHub Actions) lê os feeds RSS, gera `site/data/items.json` e publica tudo no GitHub Pages. Não há servidor nem banco de dados, e o custo é zero.
 
@@ -8,7 +8,7 @@ O site é 100% estático: um robô (GitHub Actions) lê os feeds RSS, gera `site
 
 | Arquivo | O que faz |
 |---|---|
-| `sources.json` | Lista de veículos. `type: "noticia"` vai para a aba Notícias, `type: "ensaio"` vai para Textos longos. |
+| `sources.json` | Lista de veículos. `type: "noticia"` vai para a aba Notícias, `type: "ensaio"` vai para Ensaios. |
 | `scripts/fetch.mjs` | Baixa os feeds, limpa os textos, detecta temas e mescla com o histórico (14 dias). |
 | `scripts/themes.mjs` | Temas e palavras-chave usados na classificação automática. |
 | `site/` | O site em si (HTML, CSS e JS puros). |

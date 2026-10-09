@@ -163,7 +163,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 12px 16px 8px; outline: none;
 .card h3 a:hover { color: var(--red-ink); text-decoration: underline; text-decoration-thickness: 2px; }
 .card p { margin: 0; color: var(--ink); opacity: .86; font-size: 15px; overflow-wrap: anywhere; }
 
-/* Textos longos: lista editorial */
+/* Ensaios: lista editorial */
 .essays { display: grid; gap: 0; }
 .essay {
   display: grid; grid-template-columns: 64px 1fr 200px; gap: 18px;

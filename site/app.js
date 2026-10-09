@@ -123,7 +123,7 @@
     };
     feedEl.innerHTML = `<div class="sources">
       <p class="sources-intro">O Mural Vermelho lê os feeds públicos (RSS) destes veículos de hora em hora e mostra título, trecho e link. Nada é republicado na íntegra: a leitura completa acontece sempre no site de origem. A lista é curada e revisada periodicamente.</p>
-      ${block("noticia", "Notícias")}${block("ensaio", "Textos longos e análise")}</div>`;
+      ${block("noticia", "Notícias")}${block("ensaio", "Ensaios e análise")}</div>`;
   }
 
   // Estatísticas: conta uma visita por aba aberta (não conta buscas nem filtros).
