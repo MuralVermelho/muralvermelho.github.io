@@ -13,7 +13,7 @@ const OUT = join(ROOT, "site", "data", "items.json");
 const KEEP_DAYS = 14;
 const MAX_PER_SOURCE = 80;
 const EXCERPT_LEN = 300;
-const UA = "Mozilla/5.0 (compatible; MuralVermelhoBot/1.0; agregador de noticias; +https://muralvermelho.github.io/mural-vermelho/)";
+const UA = "Mozilla/5.0 (compatible; MuralVermelhoBot/1.0; agregador de noticias; +https://muralvermelho.github.io/)";
 const BROWSER_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36";
 
 const parser = new Parser({
