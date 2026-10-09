@@ -182,6 +182,36 @@
   });
   window.addEventListener("hashchange", () => { readHash(); render(); });
 
+  /* ---------- App instalável ---------- */
+  if ("serviceWorker" in navigator && location.protocol === "https:") {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+  const installBtn = $("#install");
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  let deferredPrompt = null;
+  if (!standalone) {
+    // Android e computador: o navegador avisa quando dá para instalar
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.hidden = false;
+    });
+    // iPhone/iPad: não há aviso automático, então mostramos o passo a passo
+    if (isIOS) installBtn.hidden = false;
+  }
+  installBtn.addEventListener("click", async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBtn.hidden = true;
+    } else if (isIOS) {
+      $("#ios-help").showModal();
+    }
+  });
+  window.addEventListener("appinstalled", () => { installBtn.hidden = true; });
+
   /* ---------- Início ---------- */
   $("#today").textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   readHash();

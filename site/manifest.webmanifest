@@ -1,0 +1,21 @@
+{
+  "name": "Mural Vermelho",
+  "short_name": "Mural",
+  "description": "Notícias e ideias da esquerda. Num só lugar.",
+  "lang": "pt-BR",
+  "id": "/",
+  "start_url": "./#/noticias",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#111111",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Notícias", "url": "./#/noticias" },
+    { "name": "Ensaios", "url": "./#/ensaios" }
+  ]
+}

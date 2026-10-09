@@ -222,3 +222,21 @@ main { max-width: 1200px; margin: 0 auto; padding: 12px 16px 8px; outline: none;
 }
 button.src { background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
 button.src:hover { text-decoration: underline; }
+
+/* Instalar como app */
+.install {
+  margin-top: 16px;
+  font: 800 14px/1 var(--body); text-transform: uppercase; letter-spacing: .06em;
+  background: #f2ede1; color: #111; border: 0; padding: 11px 14px; cursor: pointer;
+  box-shadow: 5px 5px 0 var(--red);
+}
+.install:hover { background: #fff; box-shadow: 5px 5px 0 #f2ede1; }
+.ios-help {
+  max-width: min(420px, calc(100vw - 32px)); border: 3px solid var(--rule); border-radius: 0;
+  background: var(--card); color: var(--ink); padding: 20px 22px; box-shadow: 8px 8px 0 var(--red);
+}
+.ios-help::backdrop { background: rgba(0, 0, 0, .6); }
+.ios-help h2 { font: 400 28px/1 var(--display); text-transform: uppercase; margin: 0 0 10px; }
+.ios-help ol { padding-left: 20px; margin: 0 0 18px; }
+.ios-help li { margin-bottom: 8px; }
+.ios-help .more { font-size: 18px; padding: 12px 22px 10px; }

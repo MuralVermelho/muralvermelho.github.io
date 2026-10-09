@@ -5,9 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Mural Vermelho · notícias e ideias da esquerda</title>
   <meta name="description" content="Agregador de notícias e textos de esquerda em português: dezenas de veículos independentes e populares num só lugar, atualizado de hora em hora.">
+  <link rel="canonical" href="https://muralvermelho.github.io/">
+  <!-- Prévia ao compartilhar (WhatsApp, Telegram, Facebook, X, Bluesky) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Mural Vermelho">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:url" content="https://muralvermelho.github.io/">
   <meta property="og:title" content="Mural Vermelho · notícias e ideias da esquerda">
   <meta property="og:description" content="Dezenas de veículos de esquerda num só lugar, atualizado de hora em hora.">
-  <meta name="theme-color" content="#d7261e">
+  <meta property="og:image" content="https://muralvermelho.github.io/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Mural Vermelho: notícias e ideias da esquerda. Num só lugar.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://muralvermelho.github.io/og.png">
+  <!-- App instalável -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Mural Vermelho">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="theme-color" content="#111111">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23d7261e'/%3E%3Cpolygon fill='%23111' points='50,12 61,40 91,40 67,58 76,88 50,70 24,88 33,58 9,40 39,40'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,6 +44,7 @@
       </div>
       <h1 class="logo"><a href="#/noticias"><span class="logo-star" aria-hidden="true">★</span><span>Mural</span> <span class="logo-v">Vermelho</span></a></h1>
       <p class="tagline">Notícias e ideias da esquerda. <strong>Num só lugar.</strong></p>
+      <button id="install" class="install" hidden>★ Instalar o app</button>
     </div>
   </header>
 
@@ -33,6 +53,16 @@
     <a href="#/ensaios" data-tab="ensaios">Ensaios</a>
     <a href="#/fontes" data-tab="fontes">Fontes</a>
   </nav>
+
+  <dialog id="ios-help" class="ios-help">
+    <h2>Instalar no iPhone</h2>
+    <ol>
+      <li>Toque no botão <strong>Compartilhar</strong> do Safari (o quadrado com a seta para cima).</li>
+      <li>Role e toque em <strong>Adicionar à Tela de Início</strong>.</li>
+      <li>Toque em <strong>Adicionar</strong>. Pronto: o Mural Vermelho vira um ícone no seu celular.</li>
+    </ol>
+    <form method="dialog"><button class="more">Entendi</button></form>
+  </dialog>
 
   <section class="controls" id="controls" aria-label="Filtros">
     <div class="row">
