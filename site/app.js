@@ -126,9 +126,20 @@
       ${block("noticia", "Notícias")}${block("ensaio", "Textos longos e análise")}</div>`;
   }
 
+  // Estatísticas: conta uma visita por aba aberta (não conta buscas nem filtros).
+  let tracked = "";
+  function track(tries = 0) {
+    if (tracked === state.tab) return;
+    const gc = window.goatcounter;
+    if (!gc || !gc.count) { if (tries < 20) setTimeout(() => track(tries + 1), 500); return; }
+    tracked = state.tab;
+    gc.count({ path: "/" + state.tab, title: document.querySelector(`.tabs a[data-tab="${state.tab}"]`)?.textContent });
+  }
+
   function render() {
     document.querySelectorAll(".tabs a").forEach((a) => (a.dataset.tab === state.tab ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")));
     writeHash();
+    track();
     if (state.tab === "fontes") {
       controls.hidden = true; moreBtn.hidden = true;
       renderSources();
