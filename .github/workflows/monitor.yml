@@ -1,0 +1,31 @@
+name: Monitor diário
+
+on:
+  schedule:
+    - cron: "0 12 * * *"   # todo dia às 9h (horário de Brasília)
+  workflow_dispatch:        # botão "Run workflow" para verificar na hora
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verificar o site
+        id: check
+        run: |
+          if node scripts/monitor.mjs; then echo "failed=false" >> "$GITHUB_OUTPUT"; else echo "failed=true" >> "$GITHUB_OUTPUT"; fi
+          cat relatorio.md >> "$GITHUB_STEP_SUMMARY"
+        env:
+          SITE_URL: https://muralvermelho.github.io
+      - name: Abrir, atualizar ou fechar o aviso
+        run: node scripts/notify.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MONITOR_FAILED: ${{ steps.check.outputs.failed }}
