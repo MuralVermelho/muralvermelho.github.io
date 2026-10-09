@@ -13,7 +13,7 @@ const OUT = join(ROOT, "site", "data", "items.json");
 const KEEP_DAYS = 14;
 const MAX_PER_SOURCE = 80;
 const EXCERPT_LEN = 300;
-const UA = "Mozilla/5.0 (compatible; PanfletoBot/1.0; agregador de noticias; +https://github.com)";
+const UA = "Mozilla/5.0 (compatible; MuralVermelhoBot/1.0; agregador de noticias; +https://github.com)";
 
 const parser = new Parser({
   customFields: {

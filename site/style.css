@@ -53,7 +53,7 @@ img { display: block; max-width: 100%; }
   content: "";
   position: absolute;
   inset: 0 0 0 auto;
-  width: 42%;
+  width: 30%;
   background: var(--red);
   clip-path: polygon(38% 0, 100% 0, 100% 100%, 0 100%);
 }
@@ -65,10 +65,11 @@ img { display: block; max-width: 100%; }
 }
 .logo {
   margin: 10px 0 0;
-  font: 400 clamp(64px, 15vw, 168px)/.86 var(--display);
+  font: 400 clamp(52px, 11.5vw, 150px)/.9 var(--display);
   text-transform: uppercase; letter-spacing: -.01em;
 }
-.logo a { text-decoration: none; display: inline-flex; align-items: center; gap: .08em; }
+.logo a { text-decoration: none; display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 .2em; }
+.logo-v { background: var(--red); color: #111; padding: .02em .12em 0; box-shadow: .06em .06em 0 #f2ede1; }
 .logo-star { color: var(--red); font-size: .62em; transform: translateY(-.04em) rotate(-8deg); }
 .tagline {
   margin: 10px 0 0; font: 500 clamp(15px, 2.2vw, 20px)/1.25 var(--body);

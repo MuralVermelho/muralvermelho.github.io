@@ -18,4 +18,4 @@ createServer(async (req, res) => {
   } catch {
     res.writeHead(404).end("404");
   }
-}).listen(PORT, () => console.log(`Panfleto rodando em http://localhost:${PORT}`));
+}).listen(PORT, () => console.log(`Mural Vermelho rodando em http://localhost:${PORT}`));

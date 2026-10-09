@@ -1,4 +1,4 @@
-# Panfleto
+# Mural Vermelho
 
 Agregador de notícias e textos de esquerda em português. Reúne títulos, trechos e links de dezenas de veículos, atualizado de hora em hora, com duas seções (**Notícias** e **Textos longos**), filtro por tema e por veículo e busca.
 
@@ -44,4 +44,4 @@ Daí em diante, o site se atualiza sozinho de hora em hora.
 
 ## Direitos autorais
 
-O Panfleto mostra apenas título, um trecho curto e o link, que é o que os próprios veículos publicam nos feeds RSS. A leitura completa sempre acontece no site original.
+O Mural Vermelho mostra apenas título, um trecho curto e o link, que é o que os próprios veículos publicam nos feeds RSS. A leitura completa sempre acontece no site original.

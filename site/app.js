@@ -122,7 +122,7 @@
          ${s.ok === false ? `<span class="off" title="${esc(s.error)}">fora do ar agora</span>` : `<button data-goto="${esc(s.id)}" data-type="${type}">${n(s.id)} textos</button>`}</li>`).join("")}</ul>`;
     };
     feedEl.innerHTML = `<div class="sources">
-      <p class="sources-intro">O Panfleto lê os feeds públicos (RSS) destes veículos de hora em hora e mostra título, trecho e link. Nada é republicado na íntegra: a leitura completa acontece sempre no site de origem. A lista é curada e revisada periodicamente.</p>
+      <p class="sources-intro">O Mural Vermelho lê os feeds públicos (RSS) destes veículos de hora em hora e mostra título, trecho e link. Nada é republicado na íntegra: a leitura completa acontece sempre no site de origem. A lista é curada e revisada periodicamente.</p>
       ${block("noticia", "Notícias")}${block("ensaio", "Textos longos e análise")}</div>`;
   }
 
