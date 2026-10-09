@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "0 12 * * *"   # todo dia às 9h (horário de Brasília)
   workflow_dispatch:        # botão "Run workflow" para verificar na hora
+    inputs:
+      simular:
+        description: "Simular um problema (para testar o aviso por e-mail)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -23,7 +28,7 @@ jobs:
           if node scripts/monitor.mjs; then echo "failed=false" >> "$GITHUB_OUTPUT"; else echo "failed=true" >> "$GITHUB_OUTPUT"; fi
           cat relatorio.md >> "$GITHUB_STEP_SUMMARY"
         env:
-          SITE_URL: https://muralvermelho.github.io
+          SITE_URL: ${{ inputs.simular && 'https://muralvermelho.github.io/endereco-inexistente' || 'https://muralvermelho.github.io' }}
       - name: Abrir, atualizar ou fechar o aviso
         run: node scripts/notify.mjs
         env:
