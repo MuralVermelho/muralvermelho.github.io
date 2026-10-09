@@ -13,7 +13,8 @@ const OUT = join(ROOT, "site", "data", "items.json");
 const KEEP_DAYS = 14;
 const MAX_PER_SOURCE = 80;
 const EXCERPT_LEN = 300;
-const UA = "Mozilla/5.0 (compatible; MuralVermelhoBot/1.0; agregador de noticias; +https://github.com)";
+const UA = "Mozilla/5.0 (compatible; MuralVermelhoBot/1.0; agregador de noticias; +https://muralvermelho.github.io/mural-vermelho/)";
+const BROWSER_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36";
 
 const parser = new Parser({
   customFields: {
@@ -81,10 +82,13 @@ function canonicalLink(link) {
 }
 
 async function fetchSource(src) {
-  const r = await fetch(src.feed, {
-    headers: { "User-Agent": UA, Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml, */*" },
+  const get = (ua) => fetch(src.feed, {
+    headers: { "User-Agent": ua, Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml, */*", "Accept-Language": "pt-BR,pt;q=0.9" },
     signal: AbortSignal.timeout(25000)
   });
+  let r = await get(UA);
+  // alguns sites bloqueiam robôs; tenta de novo como navegador comum
+  if (r.status === 403 || r.status === 429) r = await get(BROWSER_UA);
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   const xml = await r.text();
   const feed = await parser.parseString(xml.replace(/^﻿/, "").trim());
