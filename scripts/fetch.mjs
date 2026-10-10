@@ -68,6 +68,65 @@ function findImage(item) {
   if (m && !/(gravatar|emoji|pixel|feeds\.feedburner|1x1)/i.test(m[1])) return decode(m[1]);
   return null;
 }
+/* ---------- Autores ----------
+   Muitos sites em WordPress informam no feed quem PUBLICOU o texto (o editor),
+   não quem o ESCREVEU. Por isso: 1) procuramos "Por Fulano" no início do texto;
+   2) conforme "author" em sources.json: "page" (página do artigo), "bio" (nota no fim) ou "none";
+   3) escondemos créditos genéricos (nome do veículo, siglas, nomes de usuário). */
+const NAME_PARTICLES = new Set(["da", "de", "do", "das", "dos", "e", "di", "del", "della", "la", "le", "van", "von", "y"]);
+function titleCaseName(s) {
+  if (s !== s.toUpperCase()) return s; // só corrige nomes TODOS EM MAIÚSCULAS
+  return s.toLowerCase().split(/\s+/).map((w, i) =>
+    i > 0 && NAME_PARTICLES.has(w) ? w : w.replace(/(^|[-'’])(\p{L})/gu, (m, a, b) => a + b.toUpperCase())
+  ).join(" ");
+}
+function cleanAuthor(name, src) {
+  let a = decode(stripHtml(name || "")).replace(/\s+/g, " ").replace(/^(por|by)\s+/i, "").replace(/[|·,;:\s]+$/, "").trim();
+  if (!a) return null;
+  const n = normalize(a);
+  if (normalize(src.name).includes(n) || /^(redacao|admin|administrador|editor|editoria|equipe|da redacao)$/.test(n)) return null;
+  if (/^[a-z0-9._-]+$/.test(a)) return null;        // nome de usuário do sistema (ex.: "gutoalves")
+  if (/^[A-Z]{1,4}$/.test(a) || a.length < 4) return null; // siglas (ex.: "FP")
+  return titleCaseName(a);
+}
+const NAME_WORD = "[A-ZÀ-ÖØ-Þ][\\p{L}'’.-]*";
+const BYLINE = new RegExp(`^Por\\s+(${NAME_WORD}(?:\\s+(?:d[aeo]s?|e|di|del|von|van|${NAME_WORD})){0,7})\\s*(?::|$)`, "u");
+function authorFromContent(html) {
+  const lines = decode((html || "").replace(/<\/(p|div|h\d|li|figure)>|<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, " "))
+    .split("\n").map((l) => l.replace(/\s+/g, " ").trim()).filter(Boolean).slice(0, 3);
+  for (const l of lines) {
+    const m = l.match(BYLINE);
+    if (m) return m[1];
+  }
+  return null;
+}
+// Nota biográfica no fim do texto: "Fulano de Tal é professor..." (ex.: Revista Cult)
+function authorFromBio(html) {
+  const paras = decode((html || "").replace(/<\/(p|div|h\d|li)>|<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, " "))
+    .split("\n").map((l) => l.replace(/\s+/g, " ").trim()).filter((l) => l && !/apareceu primeiro em/.test(l)).slice(-3);
+  const re = new RegExp(`^\\*?\\s*(${NAME_WORD}(?:\\s+(?:d[aeo]s?|e|${NAME_WORD})){1,6})\\s+(?:é|são|foi)\\s`, "u");
+  for (const p of paras.reverse()) { const m = p.match(re); if (m) return m[1]; }
+  return null;
+}
+async function authorFromPage(url) {
+  const r = await fetch(url, { headers: { "User-Agent": BROWSER_UA, "Accept-Language": "pt-BR,pt;q=0.9" }, signal: AbortSignal.timeout(20000) });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  const html = await r.text();
+  const byline = [...html.matchAll(/class="(?:single-author|autoria)"[^>]*>\s*<a[^>]*>([^<]+)</g), ...html.matchAll(/<a[^>]+class="autoria"[^>]*>([^<]+)</g)]
+    .map((m) => decode(m[1]).trim());
+  if (byline.length) return [...new Set(byline)].join(", ").replace(/, ([^,]+)$/, " e $1");
+  // parágrafo que contém só "Por Fulano" (ex.: Blog da Boitempo)
+  for (const m of html.matchAll(/<p[^>]*>\s*(?:<[^>]+>\s*)*Por\s+(?:<[^>]+>\s*)*([^<]{3,80}?)\s*(?:<\/[^>]+>\s*)*<\/p>/g)) {
+    const name = decode(m[1]).trim();
+    if (new RegExp(`^${NAME_WORD}(?:\\s+(?:d[aeo]s?|e|${NAME_WORD})){1,7}$`, "u").test(name)) return name;
+  }
+  const meta = html.match(/<meta[^>]+name=["']author["'][^>]+content=["']([^"']+)["']/i) || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']author["']/i);
+  if (meta) return meta[1];
+  const ld = html.match(/"author"\s*:\s*(?:\[\s*)?\{[^}]*?"name"\s*:\s*"([^"]+)"/);
+  return ld ? ld[1] : null;
+}
+const normalize = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+
 function wordCount(html) {
   return stripHtml(html).split(" ").filter(Boolean).length;
 }
@@ -98,7 +157,9 @@ async function fetchSource(src) {
     .map((it) => {
       const title = stripHtml(it.title);
       const body = it.contentEncoded || it.content || it.contentSnippet || it.summary || "";
-      const excerpt = cleanExcerpt(stripHtml(it.contentSnippet && it.contentSnippet.length > 80 ? it.contentSnippet : body), title);
+      const byline = authorFromContent(it.contentEncoded || it.content);
+      let excerpt = cleanExcerpt(stripHtml(it.contentSnippet && it.contentSnippet.length > 80 ? it.contentSnippet : body), title);
+      if (byline) excerpt = excerpt.replace(new RegExp(`^Por\\s+${byline.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*:?\\s*`), "");
       const cats = (it.categories || []).map((c) => (typeof c === "string" ? c : c?._ || "")).filter(Boolean);
       let date = it.isoDate || it.dcDate || it.pubDate;
       date = date && !isNaN(new Date(date)) ? new Date(date).toISOString() : now;
@@ -109,7 +170,11 @@ async function fetchSource(src) {
         title,
         excerpt,
         image: findImage(it),
-        author: stripHtml(it.creator || it.author || "") || null,
+        // src.author: "page" = ler na página; "bio" = nota no fim do texto; "none" = o feed só traz o editor
+        author: byline ? cleanAuthor(byline, src)
+          : src.author === "bio" ? cleanAuthor(authorFromBio(it.contentEncoded || it.content), src)
+          : src.author ? null
+          : cleanAuthor(it.creator || it.author, src),
         date,
         source: src.id,
         type: src.type,
@@ -160,7 +225,9 @@ for (const it of previous) if (activeIds.has(it.source)) byId.set(it.id, it);
 for (const { items } of results) {
   for (const it of items) {
     const old = byId.get(it.id);
-    byId.set(it.id, old ? { ...it, date: old.date < it.date ? old.date : it.date } : it);
+    const merged = old ? { ...it, date: old.date < it.date ? old.date : it.date } : it;
+    if (old?.authorChecked) Object.assign(merged, { author: old.author, authorChecked: true }); // autor já lido da página
+    byId.set(it.id, merged);
   }
 }
 // Mesmo título na mesma fonte = duplicata (ex.: links com parâmetros diferentes)
@@ -177,6 +244,19 @@ const items = [...byId.values()]
     perSource[it.source] = (perSource[it.source] || 0) + 1;
     return perSource[it.source] <= MAX_PER_SOURCE;
   });
+
+// Autor lido na página do artigo (só para fontes marcadas e só uma vez por texto)
+const srcById = Object.fromEntries(sources.map((s) => [s.id, s]));
+const toCheck = items.filter((it) => srcById[it.source]?.author === "page" && !it.authorChecked);
+let found = 0;
+await pool(toCheck, 4, async (it) => {
+  try {
+    it.author = cleanAuthor(await authorFromPage(it.url), srcById[it.source]);
+    it.authorChecked = true;
+    if (it.author) found++;
+  } catch { /* tenta de novo na próxima rodada */ }
+});
+if (toCheck.length) console.log(`Autores lidos nas páginas: ${found} de ${toCheck.length}.`);
 
 const status = Object.fromEntries(results.map(({ s, items, ok, error }) => [s.id, { ok, count: items.length, error: error || null }]));
 const data = {
