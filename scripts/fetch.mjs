@@ -71,7 +71,7 @@ function findImage(item) {
 /* ---------- Autores ----------
    Muitos sites em WordPress informam no feed quem PUBLICOU o texto (o editor),
    não quem o ESCREVEU. Por isso: 1) procuramos "Por Fulano" no início do texto;
-   2) conforme "author" em sources.json: "page" (página do artigo), "bio" (nota no fim) ou "none";
+   2) conforme "author" em sources.json: "page" (página do artigo), "bio" (nota no fim), "content" ("Por Fulano") ou "none";
    3) escondemos créditos genéricos (nome do veículo, siglas, nomes de usuário). */
 const NAME_PARTICLES = new Set(["da", "de", "do", "das", "dos", "e", "di", "del", "della", "la", "le", "van", "von", "y"]);
 function titleCaseName(s) {
@@ -170,7 +170,7 @@ async function fetchSource(src) {
         title,
         excerpt,
         image: findImage(it),
-        // src.author: "page" = ler na página; "bio" = nota no fim do texto; "none" = o feed só traz o editor
+        // src.author: "page" = ler na página; "bio" = nota no fim; "content" = só "Por Fulano" no texto; "none" = o feed só traz o editor
         author: byline ? cleanAuthor(byline, src)
           : src.author === "bio" ? cleanAuthor(authorFromBio(it.contentEncoded || it.content), src)
           : src.author ? null
@@ -221,7 +221,18 @@ const results = await pool(sources, 8, async (s) => {
 // Mescla com o histórico. Mantém a data original de quem já existia.
 const byId = new Map();
 const activeIds = new Set(sources.map((s) => s.id));
-for (const it of previous) if (activeIds.has(it.source)) byId.set(it.id, it);
+const srcById = Object.fromEntries(sources.map((s) => [s.id, s]));
+for (const it of previous) {
+  if (!activeIds.has(it.source)) continue;
+  // Revisa autores do histórico com as regras atuais (textos que já saíram do feed)
+  const src = srcById[it.source];
+  if (!it.authorChecked) {
+    const byline = authorFromContent(it.excerpt);
+    it.author = byline ? cleanAuthor(byline, src) : src.author ? null : cleanAuthor(it.author, src);
+    if (byline) it.excerpt = it.excerpt.replace(/^Por\s+[^:]{3,80}:\s*/, "");
+  }
+  byId.set(it.id, it);
+}
 for (const { items } of results) {
   for (const it of items) {
     const old = byId.get(it.id);
@@ -246,7 +257,6 @@ const items = [...byId.values()]
   });
 
 // Autor lido na página do artigo (só para fontes marcadas e só uma vez por texto)
-const srcById = Object.fromEntries(sources.map((s) => [s.id, s]));
 const toCheck = items.filter((it) => srcById[it.source]?.author === "page" && !it.authorChecked);
 let found = 0;
 await pool(toCheck, 4, async (it) => {
