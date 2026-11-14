@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Incluir na pauta · Mural Vermelho</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .inc { max-width: 560px; margin: 0 auto; padding: 20px 16px 48px; }
+    .inc h1 { font: 400 40px/1 var(--display); text-transform: uppercase; margin: 0 0 14px; }
+    .inc label { display: block; font-weight: 700; margin: 14px 0 6px; }
+    .inc input[type=url], .inc input[type=password] {
+      width: 100%; font: 500 16px var(--body); color: var(--ink); background: var(--card);
+      border: 3px solid var(--rule); border-radius: 0; padding: 12px;
+    }
+    .inc .types { display: flex; gap: 8px; }
+    .inc .types label { flex: 1; margin: 0; }
+    .inc .types input { position: absolute; opacity: 0; }
+    .inc .types span { display: block; text-align: center; font-weight: 800; text-transform: uppercase; border: 3px solid var(--rule); padding: 12px; cursor: pointer; }
+    .inc .types input:checked + span { background: var(--red); color: #fff; border-color: var(--red); }
+    .inc .types input:focus-visible + span { outline: 3px solid var(--red); outline-offset: 2px; }
+    .inc .send { width: 100%; margin-top: 18px; }
+    .inc .msg { margin: 14px 0 0; padding: 12px; border: 3px solid var(--rule); font-weight: 600; }
+    .inc .msg.err { border-color: var(--red); color: var(--red-ink); }
+    .inc .hint { color: var(--muted); font-size: 14px; margin: 8px 0 0; }
+    .inc .linkbtn { background: none; border: 0; padding: 0; color: var(--red-ink); text-decoration: underline; font: 600 14px var(--body); cursor: pointer; }
+    .inc ul { list-style: none; padding: 0; margin: 8px 0 0; }
+    .inc li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--soft); }
+    .inc h2 { font: 400 24px/1 var(--display); text-transform: uppercase; margin: 30px 0 4px; }
+  </style>
+</head>
+<body>
+  <main class="inc">
+    <h1>Incluir na pauta</h1>
+
+    <form id="key-form" hidden>
+      <label for="key">Chave de publicação</label>
+      <input id="key" type="password" autocomplete="off" required>
+      <p class="hint">Digite só uma vez. Ela fica guardada apenas neste celular.</p>
+      <button class="more send">Salvar chave</button>
+    </form>
+
+    <form id="form" hidden>
+      <label for="url">Link da matéria ou do ensaio</label>
+      <input id="url" type="url" inputmode="url" placeholder="https://…" required>
+      <label>Tipo</label>
+      <div class="types">
+        <label><input type="radio" name="tipo" value="noticia" checked><span>Matéria</span></label>
+        <label><input type="radio" name="tipo" value="ensaio"><span>Ensaio</span></label>
+      </div>
+      <button class="more send" id="send">Publicar</button>
+      <p class="hint">Ligue a VPN antes de publicar. <button type="button" class="linkbtn" id="forget">Trocar chave</button></p>
+    </form>
+
+    <p class="msg" id="msg" role="status" hidden></p>
+
+    <section id="current" hidden>
+      <h2>Incluídas agora</h2>
+      <ul id="list"></ul>
+    </section>
+  </main>
+
+  <script>
+  (() => {
+    const REPO = "MuralVermelho/mural-codigo", STORE = "mv-chave-publicacao";
+    const $ = (s) => document.querySelector(s);
+    const read = () => { try { return localStorage.getItem(STORE); } catch { return memory; } };
+    const save = (v) => { memory = v; try { v ? localStorage.setItem(STORE, v) : localStorage.removeItem(STORE); } catch {} };
+    let memory = null, title = "";
+
+    function say(text, error) {
+      const m = $("#msg");
+      m.textContent = text; m.hidden = false; m.classList.toggle("err", !!error);
+    }
+    function show() {
+      const has = !!read();
+      $("#key-form").hidden = has;
+      $("#form").hidden = !has;
+      $("#current").hidden = !has || !$("#list").children.length;
+    }
+
+    async function send(action, body) {
+      const r = await fetch(`https://api.github.com/repos/${REPO}/issues`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${read()}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+        body: JSON.stringify({ title: action, body: JSON.stringify(body) })
+      });
+      if (r.status === 401) { save(null); show(); throw new Error("Chave inválida ou vencida. Digite a chave de novo."); }
+      if (r.status === 403 || r.status === 404) throw new Error("Esta chave não tem permissão para publicar.");
+      if (!r.ok) throw new Error(`O GitHub respondeu com erro ${r.status}. Tente de novo.`);
+    }
+
+    // Link recebido pelo menu Compartilhar do Android (às vezes vem dentro do texto)
+    const params = new URLSearchParams(location.search);
+    const shared = params.get("url") || (params.get("text") || "").match(/https?:\/\/\S+/)?.[0] || "";
+    title = params.get("title") || "";
+    if (shared) $("#url").value = shared;
+    if (location.search) history.replaceState(null, "", location.pathname);
+
+    $("#key-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      save($("#key").value.trim());
+      $("#key").value = "";
+      show();
+    });
+    $("#forget").addEventListener("click", () => { save(null); $("#msg").hidden = true; show(); });
+
+    $("#form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const button = $("#send");
+      button.disabled = true;
+      say("Enviando…");
+      try {
+        await send("incluir", { url: $("#url").value.trim(), tipo: new FormData(e.target).get("tipo"), titulo: title });
+        say("Enviado! Aparece na aba Em Pauta em cerca de 2 minutos.");
+        $("#url").value = ""; title = "";
+      } catch (err) {
+        say(err instanceof TypeError ? "Sem conexão com o GitHub. Confira a internet e tente de novo." : err.message, true);
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    fetch("data/pauta.json", { cache: "no-cache" }).then((r) => r.ok ? r.json() : null).then((p) => {
+      for (const it of p?.manual || []) {
+        const li = document.createElement("li");
+        const name = document.createElement("span");
+        name.textContent = it.title;
+        const del = document.createElement("button");
+        del.type = "button"; del.className = "linkbtn"; del.textContent = "Remover";
+        del.addEventListener("click", async () => {
+          if (!confirm("Remover esta matéria da aba Em Pauta?")) return;
+          try {
+            await send("remover", { url: it.url });
+            li.remove();
+            say("Remoção enviada. Sai da aba em cerca de 2 minutos.");
+          } catch (err) { say(err.message, true); }
+        });
+        li.append(name, del);
+        $("#list").append(li);
+      }
+      show();
+    }).catch(() => {});
+    show();
+  })();
+  </script>
+</body>
+</html>
